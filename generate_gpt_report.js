@@ -51,7 +51,7 @@ let report = `# Gemini Code Review Report\n\n`;
 report += `**Target:** \`${targetDir}\`\n`;
 report += `**Files Reviewed:** ${files.length}\n`;
 report += `**Date:** ${new Date().toDateString()}\n`;
-report += `**Model:** Gemini 1.5 Flash\n\n---\n\n`;
+report += `**Model:** Gemini 2.0 Flash\n\n---\n\n`;
 
 let hasIssues = false;
 
