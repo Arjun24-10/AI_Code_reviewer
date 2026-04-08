@@ -43,11 +43,32 @@ jobs:
         run: npm install
         working-directory: .ai-reviewer
 
-      - name: Run AI Code Review
+      - name: Get changed files
+        id: changed
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(js|ts|jsx|tsx|py|java|go|rb|php|cs)$' > changed_files.txt || true
+          echo "Changed files:"
+          cat changed_files.txt
+
+      - name: Run AI Code Review on changed files only
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          node .ai-reviewer/generate_gpt_report.js ${{ inputs.target-dir }} review_output/gemini_report.md || echo "REVIEW_EXIT=1" >> $GITHUB_ENV
+          # Build a temp folder with only the changed files
+          mkdir -p review_target
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              mkdir -p "review_target/$(dirname $file)"
+              cp "$file" "review_target/$file"
+            fi
+          done < changed_files.txt
+
+          if [ -z "$(ls -A review_target 2>/dev/null)" ]; then
+            echo "No reviewable files changed in this PR."
+            exit 0
+          fi
+
+          node .ai-reviewer/generate_gpt_report.js review_target review_output/gemini_report.md || echo "REVIEW_EXIT=1" >> $GITHUB_ENV
 
       - name: Upload report artifact
         uses: actions/upload-artifact@v4

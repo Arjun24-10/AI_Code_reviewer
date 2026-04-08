@@ -16,7 +16,7 @@ if (!process.env.GEMINI_API_KEY) {
 const SUPPORTED_EXTENSIONS = [".js", ".ts", ".jsx", ".tsx", ".py", ".java", ".go", ".rb", ".php", ".cs"];
 
 // Folders to skip
-const SKIP_DIRS = ["node_modules", ".git", "dist", "build", ".next", "coverage", "vendor"];
+const SKIP_DIRS = ["node_modules", ".git", "dist", "build", ".next", "coverage", "vendor", ".ai-reviewer"];
 
 /**
  * Recursively collect all reviewable files from a directory
