@@ -11,8 +11,8 @@ if (args.length === 0) {
   process.exit(1);
 }
 
-if (!process.env.OPENAI_API_KEY) {
-  console.error("Error: OPENAI_API_KEY is not set. Copy .env.example to .env and add your key.");
+if (!process.env.GEMINI_API_KEY) {
+  console.error("Error: GEMINI_API_KEY is not set. Copy .env.example to .env and add your key.");
   process.exit(1);
 }
 

@@ -1,6 +1,7 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 const SYSTEM_PROMPT = `You are an expert code reviewer. When given code, analyze it and provide:
 1. A brief summary of what the code does
@@ -13,9 +14,9 @@ const SYSTEM_PROMPT = `You are an expert code reviewer. When given code, analyze
 Be concise and actionable. Format your response with clear sections.`;
 
 /**
- * Reviews code using OpenAI's API
+ * Reviews code using Gemini API
  * @param {string} code - The source code to review
- * @param {string} language - Optional language hint (e.g. "javascript", "python")
+ * @param {string} language - Optional language hint
  * @returns {Promise<string>} The review text
  */
 export async function reviewCode(code, language = "") {
@@ -23,14 +24,6 @@ export async function reviewCode(code, language = "") {
     ? `Review this ${language} code:\n\n\`\`\`${language}\n${code}\n\`\`\``
     : `Review this code:\n\n\`\`\`\n${code}\n\`\`\``;
 
-  const response = await client.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: userMessage },
-    ],
-    temperature: 0.3,
-  });
-
-  return response.choices[0].message.content;
+  const result = await model.generateContent(`${SYSTEM_PROMPT}\n\n${userMessage}`);
+  return result.response.text();
 }

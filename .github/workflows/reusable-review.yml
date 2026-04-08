@@ -1,0 +1,82 @@
+name: Reusable AI Code Review
+
+on:
+  workflow_call:
+    inputs:
+      target-dir:
+        description: "Directory to review (default: .)"
+        required: false
+        default: "."
+        type: string
+    secrets:
+      GEMINI_API_KEY:
+        required: true
+
+jobs:
+  review:
+    name: Gemini Code Review
+    runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout calling repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout reviewer tool
+        uses: actions/checkout@v4
+        with:
+          repository: Arjun24-10/Model_to_check-AICodeReviewer
+          path: .ai-reviewer
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install reviewer dependencies
+        run: npm install
+        working-directory: .ai-reviewer
+
+      - name: Run AI Code Review
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          node .ai-reviewer/generate_gpt_report.js ${{ inputs.target-dir }} review_output/gemini_report.md || echo "REVIEW_EXIT=1" >> $GITHUB_ENV
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-review-report
+          path: review_output/gemini_report.md
+
+      - name: Post review to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🤖 AI Code Review Report\n\n';
+            try {
+              const report = fs.readFileSync('review_output/gemini_report.md', 'utf8');
+              body += report.length > 60000
+                ? report.substring(0, 60000) + '\n\n_...truncated. Download artifact for full report._'
+                : report;
+            } catch (e) {
+              body += '> Could not read review report.';
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+
+      - name: Fail if critical issues found
+        if: env.REVIEW_EXIT == '1'
+        run: exit 1
