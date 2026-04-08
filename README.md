@@ -28,16 +28,10 @@ Language is auto-detected from the file extension if not provided.
 
 ## What it reviews
 
-- Bugs and potential errors
+- Bugs and potential errors   
 - Security vulnerabilities
 - Performance issues
 - Code quality and readability
 - Best practice violations
-
-## Configuration
-
-| Variable | Description |
-|---|---|
-| `OPENAI_API_KEY` | Your OpenAI API key (required) |
 
 To use a different model, update the `model` field in `reviewer.js`.
