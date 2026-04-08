@@ -30,7 +30,7 @@ jobs:
       - name: Checkout reviewer tool
         uses: actions/checkout@v4
         with:
-          repository: Arjun24-10/Model_to_check-AICodeReviewer
+          repository: Arjun24-10/AI_Code_reviewer
           path: .ai-reviewer
           token: ${{ secrets.GITHUB_TOKEN }}
 
